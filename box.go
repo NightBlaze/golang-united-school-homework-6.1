@@ -2,6 +2,8 @@ package golang_united_school_homework
 
 import "errors"
 
+var outOfIndexErr = errors.New("out of index")
+
 // box contains list of shapes and able to perform operations on them
 type box struct {
 	shapes         []Shape
@@ -30,7 +32,7 @@ func (b *box) AddShape(shape Shape) error {
 // whether shape by index doesn't exist or index went out of the range, then it returns an error
 func (b *box) GetByIndex(i int) (Shape, error) {
 	if i < 0 || i >= len(b.shapes) {
-		return nil, errors.New("out of index")
+		return nil, outOfIndexErr
 	}
 	return b.shapes[i], nil
 }
@@ -39,7 +41,7 @@ func (b *box) GetByIndex(i int) (Shape, error) {
 // whether shape by index doesn't exist or index went out of the range, then it returns an error
 func (b *box) ExtractByIndex(i int) (Shape, error) {
 	if i < 0 || i >= len(b.shapes) {
-		return nil, errors.New("out of index")
+		return nil, outOfIndexErr
 	}
 	result := b.shapes[i]
 	copy(b.shapes[i:], b.shapes[i+1:])
@@ -52,7 +54,7 @@ func (b *box) ExtractByIndex(i int) (Shape, error) {
 // whether shape by index doesn't exist or index went out of the range, then it returns an error
 func (b *box) ReplaceByIndex(i int, shape Shape) (Shape, error) {
 	if i < 0 || i >= len(b.shapes) {
-		return nil, errors.New("out of index")
+		return nil, outOfIndexErr
 	}
 	result := b.shapes[i]
 	b.shapes[i] = shape
@@ -80,22 +82,18 @@ func (b *box) SumArea() float64 {
 // RemoveAllCircles removes all circles in the list
 // whether circles are not exist in the list, then returns an error
 func (b *box) RemoveAllCircles() error {
-	hasCircles := false
-	for b.removeCircle() {
-		hasCircles = true
-	}
-	if !hasCircles {
-		return errors.New("has no circles")
-	}
-	return nil
-}
-
-func (b *box) removeCircle() bool {
-	for i, shape := range b.shapes {
-		if _, ok := shape.(Circle); ok {
-			b.ExtractByIndex(i)
-			return true
+	result := make([]Shape, 0)
+	for _, shape := range b.shapes {
+		if _, ok := shape.(Circle); !ok {
+			result = append(result, shape)
 		}
 	}
-	return false
+
+	if len(result) == len(b.shapes) {
+		return errors.New("has no circles")
+	}
+
+	b.shapes = result
+
+	return nil
 }
